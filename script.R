@@ -34,8 +34,7 @@ el_hombre <-  epub("ElHombreEnBuscaDeSentido.epub")
 #View(el_hombre$data[[1]])
 # tomaremos de la sección 1 a la 5, esto es las filas 2 a la 6
 
-el_hombre_libro <- el_hombre$data[[1]][2:6,2]
-el_hombre_texto <- paste(el_hombre_libro, collapse = " ")
+el_hombre_texto <- paste(el_hombre$data[[1]][2:6,2], collapse = " ")
 
 
 # LEEMOS el EPUB El Elemento
