@@ -53,6 +53,9 @@ limpiatexto <- function(texto) {
 
 
 
+
+
+
 # Lectura de los textos formato EPUB --------------------------------------
 
 
@@ -102,45 +105,46 @@ padre_rico_texto <- limpiatexto(padre_rico_texto)
 padre_rico_texto
 
 
-
-#View(el_hombre_texto)
-
-# 
-# unas_stopwords <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
-# 
-# # stopworfd personalizado
-# mis_stopwords <- tibble(palabra = c("va", "tenemos"))# Eliminamos los numeros:
-el_hombre_texto <- str_remove_all(el_hombre_texto, "[:punct:]+[:digit:]+[:punct:]")
-el_hombre_texto <- str_remove_all(el_hombre_texto, "[:digit:]+[:punct:]")
-el_hombre_texto <- str_remove_all(el_hombre_texto, "[:punct:]")
-el_hombre_texto <- str_remove_all(el_hombre_texto, "[:digit:][:space:]{0,}")
-el_hombre_texto <-   gsub("vol  pp <<", " ", el_hombre_texto) 
-el_hombre_texto <-   gsub("<<       ", " ", el_hombre_texto) 
-el_hombre_texto <-   str_remove_all(el_hombre_texto, "[:space:]{2,}")
-el_hombre_texto <-   gsub("<<\n", " ", el_hombre_texto) 
-el_hombre_texto
+# Funcion para tomar la frequencia de palabras y realizar antijoin --------
 
 
+freq_palabras_libros <- function(libros) {
+  #  se pasa el texto a una tibble con palabras y se cuenta la freq  --------
+  libros_por_freq <- tibble(texto = libros) %>% 
+    unnest_tokens(input = texto, output = palabra, strip_numeric = TRUE) %>% 
+    count(palabra, sort = TRUE)
+  
+  # se descarga los stopword de la web entregada.
+  stopwords_web <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
+  
+  # stopworfd personalizado 
+  mis_stopwords <- tibble(palabra = c("va", "tenemos","value","xx"))
+  
+  # aca se quitan los stopwords.
+  libros_quitando_palabras <- libros_por_freq %>% 
+    anti_join(stopwords_web) %>%  # saca los valores que conincide
+    anti_join(mis_stopwords)
+    
+  libros_quitando_palabras
+}
 
-#  se pasa el texto a una tibble con palabras y se cuenta la freq  --------
-el_hombre_freq <- tibble(texto = el_hombre_texto) %>% 
-  unnest_tokens(input = texto, output = palabra, strip_numeric = TRUE) %>% 
-  count(palabra, sort = TRUE)
 
-# se descarga los stopword de la web entregada.
-stopwords_web <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
 
-# stopworfd personalizado 
-mis_stopwords <- tibble(palabra = c("va", "tenemos","value","xx"))
+# Llamando a la funciona para obtener la limpiaza de los libros  ----------
 
-# aca se quitan los stopwords.
-libros_ElHombreEnBuscaDeSentido <- el_hombre_freq %>% 
-  anti_join(stopwords_web) %>%  # saca los valores que conincide
-  anti_join(mis_stopwords) #%>% 
-  #filter(!str_detect(palabra, regex("chile", ignore_case = TRUE)))# regenx para sacar mayuscula 
+freq_el_hombre_texto <- freq_palabras_libros(el_hombre_texto)
+freq_el_hombre_texto
 
-libros_ElHombreEnBuscaDeSentido
-View(libros_ElHombreEnBuscaDeSentido)
+freq_el_elemento_texto <- freq_palabras_libros(el_elemento_texto)
+freq_el_elemento_texto
+
+freq_padre_rico_texto <- freq_palabras_libros(padre_rico_texto)
+freq_padre_rico_texto
+
+
+
+
+
 
 
 
