@@ -32,8 +32,22 @@ limpiatexto <- function(texto) {
     str_remove_all("`C.+=") %>% 
     str_remove_all("c\\(") %>% 
     str_remove_all("\\)") %>% 
-    str_remove_all("\\n") %>% 
-    str_remove_all("'\'")
+    str_replace_all( "\\n", " ") %>% 
+    str_replace_all( "«", " ") %>% 
+    str_replace_all( "»", " ") %>% 
+    str_remove_all("'\'") %>% 
+    str_remove_all( "[:punct:]+[:digit:]+[:punct:]") %>% 
+    str_remove_all( "[:digit:]+[:punct:]") %>% 
+    str_remove_all( "[:digit:][:space:]{0,}") %>% 
+    str_remove_all( "vol  pp <<")   %>% 
+    str_remove_all( "<<") %>% 
+    str_remove_all( "<<\n") %>% 
+    str_replace_all("[:punct:]", " ") %>% 
+    str_replace_all( "[:space:]{2,}", " ")
+ 
+    #str_remove_all("\") 
+  
+
   resultadotxt
 }
 
@@ -46,7 +60,7 @@ limpiatexto <- function(texto) {
 el_hombre <-  epub("ElHombreEnBuscaDeSentido.epub")
 
 # Verificamos que sea los capitulos correctos del epub los que leeremos
-View(el_hombre$data[[1]])
+#View(el_hombre$data[[1]])
 
 # tomaremos de la sección 1 a la 5, esto es las filas 2 a la 6
 el_hombre_texto <- paste(el_hombre$data[[1]][2:6,2], collapse = " ")
@@ -57,7 +71,7 @@ el_hombre_texto <- paste(el_hombre$data[[1]][2:6,2], collapse = " ")
 el_elemento <- epub("ElElemento.epub")
 
 # Verificamos que es la info del libro sin agregar cosas demás
-View(el_elemento$data[[1]])
+#View(el_elemento$data[[1]])
 
 # tomaremos del capitulo 1 al 11, esto es filas 10 a 22
 el_elemento_texto <- paste(el_elemento$data[[1]][10:22,2],collapse = " ")
@@ -68,7 +82,7 @@ el_elemento_texto <- paste(el_elemento$data[[1]][10:22,2],collapse = " ")
 padre_rico <-  epub("PadreRicoPadrePobre.epub")
 
 # Verificamos que sea los capitulos correctos del epub los que leeremos
-View(padre_rico$data[[1]])
+#View(padre_rico$data[[1]])
 
 # tomaremos del capitulo 1 al 9 (filas 3 a la 11)
 padre_rico_texto <- paste(padre_rico$data[[1]][3:11,2], collapse = " ")
@@ -79,11 +93,13 @@ padre_rico_texto <- paste(padre_rico$data[[1]][3:11,2], collapse = " ")
 
 
 el_hombre_texto <- limpiatexto(el_hombre_texto)
+el_hombre_texto
 
 el_elemento_texto <- limpiatexto(el_elemento_texto)
+el_elemento_texto
 
 padre_rico_texto <- limpiatexto(padre_rico_texto)
-
+padre_rico_texto
 
 
 
