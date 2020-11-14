@@ -36,7 +36,7 @@ limpiatexto <- function(texto) {
     str_replace_all( "«", " ") %>% 
     str_replace_all( "»", " ") %>% 
     str_remove_all("'\'") %>% 
-    str_remove_all( "[:punct:]+[:digit:]+[:punct:]") %>% 
+    str_remove_all( "[:punct:]+[:digit:]+[:punct:]") %>%
     str_remove_all( "[:digit:]+[:punct:]") %>% 
     str_remove_all( "[:digit:][:space:]{0,}") %>% 
     str_remove_all( "vol  pp <<")   %>% 
@@ -45,13 +45,24 @@ limpiatexto <- function(texto) {
     str_replace_all("[:punct:]", " ") %>% 
     str_replace_all( "[:space:]{2,}", " ")
  
-    #str_remove_all("\") 
-  
-
   resultadotxt
 }
 
 
+freq_palabras_libros <- function(libro, stopwords) {
+  
+  # Se pasa el texto a una tibble con palabras y se cuenta la freq  --------
+  libros_por_freq <- tibble(texto = libro) %>% 
+    unnest_tokens(input = texto, output = palabra, strip_numeric = TRUE) %>% 
+    count(palabra, sort = TRUE)
+  
+  
+  # Se quitan los stopwords.
+  libros_quitando_palabras <- libros_por_freq %>% 
+    anti_join(stopwords)
+  
+  libros_quitando_palabras
+}
 
 
 
@@ -105,40 +116,29 @@ padre_rico_texto <- limpiatexto(padre_rico_texto)
 padre_rico_texto
 
 
-# Funcion para tomar la frequencia de palabras y realizar antijoin --------
+# Funcion para tomar la frecuencia de palabras y realizar antijoin --------
+
+# 1:
+# Se descargan algunas stopwords desde la web.
+stopwords_web <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
+
+# stopword personalizado 
+mis_stopwords <- tibble(palabra = c("va", "tenemos","value","xx")) # colocar mas en caso de...
+
+# unimos
+all_stopwords <- bind_rows(stopwords_web, mis_stopwords)
+
+# 2:
+# llamamos al método que saca stopwords y les da frecuencia a las palabras del texto.
 
 
-freq_palabras_libros <- function(libros) {
-  #  se pasa el texto a una tibble con palabras y se cuenta la freq  --------
-  libros_por_freq <- tibble(texto = libros) %>% 
-    unnest_tokens(input = texto, output = palabra, strip_numeric = TRUE) %>% 
-    count(palabra, sort = TRUE)
-  
-  # se descarga los stopword de la web entregada.
-  stopwords_web <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
-  
-  # stopworfd personalizado 
-  mis_stopwords <- tibble(palabra = c("va", "tenemos","value","xx"))
-  
-  # aca se quitan los stopwords.
-  libros_quitando_palabras <- libros_por_freq %>% 
-    anti_join(stopwords_web) %>%  # saca los valores que conincide
-    anti_join(mis_stopwords)
-    
-  libros_quitando_palabras
-}
-
-
-
-# Llamando a la funciona para obtener la limpiaza de los libros  ----------
-
-freq_el_hombre_texto <- freq_palabras_libros(el_hombre_texto)
+freq_el_hombre_texto <- freq_palabras_libros(el_hombre_texto,all_stopwords)
 freq_el_hombre_texto
 
-freq_el_elemento_texto <- freq_palabras_libros(el_elemento_texto)
+freq_el_elemento_texto <- freq_palabras_libros(el_elemento_texto,all_stopwords)
 freq_el_elemento_texto
 
-freq_padre_rico_texto <- freq_palabras_libros(padre_rico_texto)
+freq_padre_rico_texto <- freq_palabras_libros(padre_rico_texto,all_stopwords)
 freq_padre_rico_texto
 
 
