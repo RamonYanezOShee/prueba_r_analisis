@@ -26,6 +26,11 @@ library(topicmodels)
 
 # Funciones personalizadas para trabajo con texto --------------------------
 
+#' limpiatexto: limpa el texto recibido de caracteres extraños.
+#' 
+#' @param texto el texto a limpiar.
+#' @return el texto limpio.
+#' limpiatexto(el_hombre_libro)
 limpiatexto <- function(texto) {
   resultadotxt <-  texto %>% 
     str_remove_all("\\\\n{1,}") %>% 
@@ -49,13 +54,17 @@ limpiatexto <- function(texto) {
 }
 
 
+#' freq_palabras_libros: saca frecuencias de palabras y elimina las stopwords.
+#' 
+#' @param libro el texto a trabajar.
+#' @param stopwords las palabras no deseadas a limpiar.
+#' @return tibble con frecuencias.
+#' freq_palabras_libros(el_hombre_libro,all_stopwords)
 freq_palabras_libros <- function(libro, stopwords) {
-  
   # Se pasa el texto a una tibble con palabras y se cuenta la freq  --------
   libros_por_freq <- tibble(texto = libro) %>% 
     unnest_tokens(input = texto, output = palabra, strip_numeric = TRUE) %>% 
     count(palabra, sort = TRUE)
-  
   
   # Se quitan los stopwords.
   libros_quitando_palabras <- libros_por_freq %>% 
@@ -65,6 +74,29 @@ freq_palabras_libros <- function(libro, stopwords) {
 }
 
 
+#' bigramas_libros: Obtiene bigramas del texto entregado.
+#' 
+#' @param libro_texto el texto a trabajar.
+#' @return bigrama de palabras en tibble.
+#' bigramas_libros(el_hombre_tibble)
+bigramas_libros <- function(libro){
+  
+  libro_tibble <-  tibble(entrada = libro)
+  bigrama_salida <-  libro_tibble %>% 
+    unnest_tokens(input = entrada,
+                  output = palabra,
+                  token = "ngrams",
+                  n = 2) %>% 
+    filter(!is.na(palabra)) %>% 
+    count(palabra, sort = TRUE) %>% 
+    separate(col= palabra, 
+             into = c("palabra_1","palabra_2"),
+             sep = " ") %>% 
+    filter(!palabra_1 %in% all_stopwords$palabra) %>% 
+    filter(!palabra_2 %in% all_stopwords$palabra)
+  
+  bigrama_salida
+}
 
 
 # Lectura de los textos formato EPUB --------------------------------------
@@ -123,7 +155,7 @@ padre_rico_texto
 stopwords_web <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
 
 # stopword personalizado 
-mis_stopwords <- tibble(palabra = c("va", "tenemos","value","xx")) # colocar mas en caso de...
+mis_stopwords <- tibble(palabra = c("va", "tenemos","value","hace", "hacer", "ser", "puede", "tiene", "dice")) # colocar mas en caso de...
 
 # unimos
 all_stopwords <- bind_rows(stopwords_web, mis_stopwords)
@@ -143,8 +175,24 @@ freq_padre_rico_texto
 
 
 
+################ BIGRAMAS ################
+
+el_hombre_bigrama <-  bigramas_libros(el_hombre_texto)
+
+el_elemento_bigrama <-  bigramas_libros(el_elemento_texto)
+
+padre_rico_bigrama <-  bigramas_libros(padre_rico_texto)
 
 
+
+
+## ¿Los resultados son los que esperaban? 
+# Si. AL mirar los bigramas y relacionarlos con el autor de cada libro, corresponden con las vivencias y entorno de cada autor.
+
+
+## ¿Hay algo que les haya llamado la atención?
+# Los libros Padre rico y el elemento son parecidos entre si, en la perspectiva de crecimiento personal y económica,
+# mientras que "el hombre en busca de sentido" toca temas vividos en un campo de concentración y el sentido a la vida que encontró en ello.
 
 
 
