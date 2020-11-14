@@ -1,0 +1,128 @@
+# Librerias requeridas ----------------------------------------------------
+
+if(!require(epubr)) install.packages("epubr")
+if(!require(epubr)) install.packages("dplyr")
+if(!require(epubr)) install.packages("stringr")
+if(!require(epubr)) install.packages("tidyverse")
+if(!require(epubr)) install.packages("tidytext")
+if(!require(epubr)) install.packages("readr")
+if(!require(epubr)) install.packages("ggplot2")
+if(!require(epubr)) install.packages("patchwork")
+
+
+library(epubr)
+library(stringr)
+library(tidytext)
+library(tidyverse)
+library(dplyr)
+library(readr)
+library(tidytext)
+library(pdftools)
+library(ggplot2)
+library(patchwork)
+library(topicmodels)
+
+
+# Lectura de los textos formato EPUB --------------------------------------
+
+
+# LEEMOS el EPUB El Hombre En Busca De Sentido
+
+el_hombre <-  epub("ElHombreEnBuscaDeSentido.epub")
+
+# Verificamos que sea los capitulos correctos del epub los que leeremos
+#View(el_hombre$data[[1]])
+# tomaremos de la sección 1 a la 5, esto es las filas 2 a la 6
+
+el_hombre_libro <- el_hombre$data[[1]][2:6,2]
+el_hombre_texto <- paste(el_hombre_libro, collapse = " ")
+
+
+# LEEMOS el EPUB El Elemento
+
+el_elemento <- epub("ElElemento.epub")
+
+# Vesdrificamos que es la info del libro sin agregar cosas demás
+#View(el_elemento$data[[1]]) 
+# tomaremos del capitulo 1 al 11, esto es filas 10 a 22
+el_elemento_libro <- el_elemento$data[[1]][10:22,2]
+el_elemento_texto <- paste(el_elemento_libro,collapse = " ")
+
+
+# LEEMOS el EPUB Padre rico, padre pobre
+
+padre_rico <-  epub("PadreRicoPadrePobre.epub")
+
+# Verificamos que sea los capitulos correctos del epub los que leeremos
+#View(padre_rico$data[[1]])
+# tomaremos del capitulo 1 al 9 (filas 3 a la 11)
+
+padre_rico_libro <- padre_rico$data[[1]][3:11,2]
+padre_rico_texto <- paste(padre_rico_libro, collapse = " ")
+
+
+
+
+# Limpiamos los caracteres raros de los textos ----------------------------
+
+# iniciamos con texto el_hombre
+
+str_count(el_hombre_texto, "\\\\n{1,}")
+el_hombre_texto <- str_remove_all(el_hombre_texto, "\\\\n{1,}")
+
+# reduciremos las expresiones del tipo: 
+# `C:/Users/ramon/AppData/Local/Temp/Rtmpqc7urC/ElHombreEnBuscaDeSentido/OEBPS/Text/Section0005.xhtml` =
+
+str_count(el_hombre_texto, "`C.+=")
+el_hombre_texto <- str_remove_all(el_hombre_texto, "`C.+=")
+
+# Eliminamos otros caracteres 
+
+str_count(el_hombre_texto, "c\\(")
+#View(el_hombre_texto)
+
+ 
+
+
+#View(el_hombre_texto)
+
+# 
+# unas_stopwords <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
+# 
+# # stopworfd personalizado
+# mis_stopwords <- tibble(palabra = c("va", "tenemos"))# Eliminamos los numeros:
+el_hombre_texto <- str_remove_all(el_hombre_texto, "[:punct:]+[:digit:]+[:punct:]")
+el_hombre_texto <- str_remove_all(el_hombre_texto, "[:digit:]+[:punct:]")
+el_hombre_texto <- str_remove_all(el_hombre_texto, "[:punct:]")
+el_hombre_texto <- str_remove_all(el_hombre_texto, "[:digit:][:space:]{0,}")
+el_hombre_texto <-   gsub("vol  pp <<", " ", el_hombre_texto) 
+el_hombre_texto <-   gsub("<<       ", " ", el_hombre_texto) 
+el_hombre_texto <-   str_remove_all(el_hombre_texto, "[:space:]{2,}")
+el_hombre_texto <-   gsub("<<\n", " ", el_hombre_texto) 
+el_hombre_texto
+
+
+
+#  se pasa el texto a una tibble con palabras y se cuenta la freq  --------
+el_hombre_freq <- tibble(texto = el_hombre_texto) %>% 
+  unnest_tokens(input = texto, output = palabra, strip_numeric = TRUE) %>% 
+  count(palabra, sort = TRUE)
+
+# se descarga los stopword de la web entregada.
+stopwords_web <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
+
+# stopworfd personalizado 
+mis_stopwords <- tibble(palabra = c("va", "tenemos","value","xx"))
+
+# aca se quitan los stopwords.
+libros_ElHombreEnBuscaDeSentido <- el_hombre_freq %>% 
+  anti_join(stopwords_web) %>%  # saca los valores que conincide
+  anti_join(mis_stopwords) #%>% 
+  #filter(!str_detect(palabra, regex("chile", ignore_case = TRUE)))# regenx para sacar mayuscula 
+
+libros_ElHombreEnBuscaDeSentido
+View(libros_ElHombreEnBuscaDeSentido)
+
+
+
+
