@@ -23,64 +23,68 @@ library(patchwork)
 library(topicmodels)
 
 
+
+# Funciones personalizadas para trabajo con texto --------------------------
+
+limpiatexto <- function(texto) {
+  resultadotxt <-  texto %>% 
+    str_remove_all("\\\\n{1,}") %>% 
+    str_remove_all("`C.+=") %>% 
+    str_remove_all("c\\(") %>% 
+    str_remove_all("\\)") %>% 
+    str_remove_all("\\n") %>% 
+    str_remove_all("'\'")
+  resultadotxt
+}
+
+
+
 # Lectura de los textos formato EPUB --------------------------------------
 
 
 # LEEMOS el EPUB El Hombre En Busca De Sentido
-
 el_hombre <-  epub("ElHombreEnBuscaDeSentido.epub")
 
 # Verificamos que sea los capitulos correctos del epub los que leeremos
-#View(el_hombre$data[[1]])
-# tomaremos de la sección 1 a la 5, esto es las filas 2 a la 6
+View(el_hombre$data[[1]])
 
+# tomaremos de la sección 1 a la 5, esto es las filas 2 a la 6
 el_hombre_texto <- paste(el_hombre$data[[1]][2:6,2], collapse = " ")
 
 
-# LEEMOS el EPUB El Elemento
 
+# LEEMOS el EPUB El Elemento
 el_elemento <- epub("ElElemento.epub")
 
-# Vesdrificamos que es la info del libro sin agregar cosas demás
-#View(el_elemento$data[[1]]) 
+# Verificamos que es la info del libro sin agregar cosas demás
+View(el_elemento$data[[1]])
+
 # tomaremos del capitulo 1 al 11, esto es filas 10 a 22
-el_elemento_libro <- el_elemento$data[[1]][10:22,2]
-el_elemento_texto <- paste(el_elemento_libro,collapse = " ")
+el_elemento_texto <- paste(el_elemento$data[[1]][10:22,2],collapse = " ")
+
 
 
 # LEEMOS el EPUB Padre rico, padre pobre
-
 padre_rico <-  epub("PadreRicoPadrePobre.epub")
 
 # Verificamos que sea los capitulos correctos del epub los que leeremos
-#View(padre_rico$data[[1]])
+View(padre_rico$data[[1]])
+
 # tomaremos del capitulo 1 al 9 (filas 3 a la 11)
-
-padre_rico_libro <- padre_rico$data[[1]][3:11,2]
-padre_rico_texto <- paste(padre_rico_libro, collapse = " ")
+padre_rico_texto <- paste(padre_rico$data[[1]][3:11,2], collapse = " ")
 
 
 
+# Limpiando los textos --------------------------------------
 
-# Limpiamos los caracteres raros de los textos ----------------------------
 
-# iniciamos con texto el_hombre
+el_hombre_texto <- limpiatexto(el_hombre_texto)
 
-str_count(el_hombre_texto, "\\\\n{1,}")
-el_hombre_texto <- str_remove_all(el_hombre_texto, "\\\\n{1,}")
+el_elemento_texto <- limpiatexto(el_elemento_texto)
 
-# reduciremos las expresiones del tipo: 
-# `C:/Users/ramon/AppData/Local/Temp/Rtmpqc7urC/ElHombreEnBuscaDeSentido/OEBPS/Text/Section0005.xhtml` =
+padre_rico_texto <- limpiatexto(padre_rico_texto)
 
-str_count(el_hombre_texto, "`C.+=")
-el_hombre_texto <- str_remove_all(el_hombre_texto, "`C.+=")
 
-# Eliminamos otros caracteres 
-
-str_count(el_hombre_texto, "c\\(")
-#View(el_hombre_texto)
-
- 
 
 
 #View(el_hombre_texto)
