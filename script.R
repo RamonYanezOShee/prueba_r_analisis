@@ -228,7 +228,7 @@ padre_rico_bigrama <-  bigramas_libros(padre_rico_texto)
 
 #Creamos la columna de libro
 freq_el_hombre_texto <- freq_el_hombre_texto %>% 
-  mutate(libro = 'El_hombre_en_busca_de_sentido', .before = palabra)
+  mutate(libro = 'El_hombre_en_busca_de_sentido', .before = palabra) 
 
 freq_el_elemento_texto <- freq_el_elemento_texto %>% 
   mutate(libro = 'El_elemento', .before = palabra)
@@ -244,7 +244,20 @@ libros <- bind_rows(freq_el_hombre_texto, freq_el_elemento_texto, freq_padre_ric
 # Generamos el análisis TF-IDF
 libros_tfidf <- bind_tf_idf(libros,
                                term = palabra,
-                               document = libros,
+                               document = libro,
                                n= n)
+
+
+x11()
+libros_tfidf %>% 
+  arrange(desc(tf_idf)) %>% 
+  group_by(libro) %>% 
+  slice_head(n=15) %>% 
+  ggplot(aes(y=reorder(palabra,tf_idf),x= tf_idf, fill= libro)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~libro, scales = "free") +
+  labs(y=NULL) +
+  scale_x_continuous(labels = scales::comma)
+
 
 
