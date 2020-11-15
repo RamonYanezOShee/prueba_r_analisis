@@ -47,7 +47,8 @@ limpiatexto <- function(texto) {
     str_remove_all( "vol  pp <<")   %>% 
     str_remove_all( "<<") %>% 
     str_remove_all( "<<\n") %>% 
-    str_replace_all("[:punct:]", " ") %>% 
+    # str_replace_all("[:punct:]", " ") %>%
+    str_replace_all("\\\\", " ") %>% 
     str_replace_all( "[:space:]{2,}", " ")
  
   resultadotxt
@@ -69,6 +70,9 @@ freq_palabras_libros <- function(libro, stopwords) {
   # Se quitan los stopwords.
   libros_quitando_palabras <- libros_por_freq %>% 
     anti_join(stopwords)
+  
+  # libros_quitando_palabras <- libros_quitando_palabras %>% 
+  #   slice_head(n=2000)
   
   libros_quitando_palabras
 }
@@ -96,6 +100,27 @@ bigramas_libros <- function(libro){
     filter(!palabra_2 %in% all_stopwords$palabra)
   
   bigrama_salida
+}
+
+
+#' grafica_frecuencias: Grafica los 15 primeros términos de las frecuencia de palabras de entrada
+#' 
+#' @param texto_tibble el texto a trabajar.
+#' @param titulo título del grafico el texto a trabajar.
+#' @return grafico de frecuencias.
+#' grafica_frecuencias(el_hombre_tibble, "el hombre en busca de sentido")
+grafica_frecuencias <- function(texto_tibble, titulo){
+  texto_tibble %>% 
+    slice_head(n=15) %>% 
+    ggplot(aes(y= reorder(palabra,n),n)) +
+    geom_col(fill = "#0057e7") + 
+    geom_text(aes(label=n)) +
+    labs(y=NULL,
+         x="Frecuencia",
+         title = titulo,
+         caption = "Fuente: analisis propio.") +
+    theme_minimal()
+  
 }
 
 
@@ -162,16 +187,18 @@ all_stopwords <- bind_rows(stopwords_web, mis_stopwords)
 
 # 2:
 # llamamos al método que saca stopwords y les da frecuencia a las palabras del texto.
-
+# Luego graficamos estas frecuencias
 
 freq_el_hombre_texto <- freq_palabras_libros(el_hombre_texto,all_stopwords)
-freq_el_hombre_texto
+grafica_frecuencias(freq_el_hombre_texto, "El hombre en busca de sentido")
 
 freq_el_elemento_texto <- freq_palabras_libros(el_elemento_texto,all_stopwords)
-freq_el_elemento_texto
+grafica_frecuencias(freq_el_elemento_texto, "El elemento")
 
 freq_padre_rico_texto <- freq_palabras_libros(padre_rico_texto,all_stopwords)
-freq_padre_rico_texto
+grafica_frecuencias(freq_padre_rico_texto,"Padre rico padre pobre")
+
+# TODO: Buscar como separar los output para que salgan los 3 graficos
 
 
 
@@ -185,7 +212,6 @@ padre_rico_bigrama <-  bigramas_libros(padre_rico_texto)
 
 
 
-
 ## ¿Los resultados son los que esperaban? 
 # Si. AL mirar los bigramas y relacionarlos con el autor de cada libro, corresponden con las vivencias y entorno de cada autor.
 
@@ -195,5 +221,30 @@ padre_rico_bigrama <-  bigramas_libros(padre_rico_texto)
 # mientras que "el hombre en busca de sentido" toca temas vividos en un campo de concentración y el sentido a la vida que encontró en ello.
 
 
+
+
+
+# Hacemos el análisis TF-IDF
+
+#Creamos la columna de libro
+freq_el_hombre_texto <- freq_el_hombre_texto %>% 
+  mutate(libro = 'El_hombre_en_busca_de_sentido', .before = palabra)
+
+freq_el_elemento_texto <- freq_el_elemento_texto %>% 
+  mutate(libro = 'El_elemento', .before = palabra)
+
+freq_padre_rico_texto <- freq_padre_rico_texto %>% 
+  mutate(libro = 'Padre_rico_padre_pobre', .before = palabra)
+
+
+# Juntamos en un solo DF
+
+libros <- bind_rows(freq_el_hombre_texto, freq_el_elemento_texto, freq_padre_rico_texto)
+
+# Generamos el análisis TF-IDF
+libros_tfidf <- bind_tf_idf(libros,
+                               term = palabra,
+                               document = libros,
+                               n= n)
 
 
