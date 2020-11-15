@@ -237,9 +237,13 @@ freq_padre_rico_texto <- freq_padre_rico_texto %>%
   mutate(libro = 'Padre_rico_padre_pobre', .before = palabra)
 
 
-# Juntamos en un solo DF
+# Juntamos libros en un solo DF
+# NOTA: Como el texto de "el hombre en busca de sentido" dista mucho respecto de los otros dos 
+# (ya que es una historia de vida que se basa en un campo de concentración),
+# se dejará fuera para realizar este análisis TF-IDF. 
+# Así podemos ver dos libros mas o menos similares y ver sus diferencias
 
-libros <- bind_rows(freq_el_hombre_texto, freq_el_elemento_texto, freq_padre_rico_texto)
+libros <- bind_rows(freq_el_elemento_texto, freq_padre_rico_texto)
 
 # Generamos el análisis TF-IDF
 libros_tfidf <- bind_tf_idf(libros,
@@ -248,7 +252,7 @@ libros_tfidf <- bind_tf_idf(libros,
                                n= n)
 
 
-x11()
+
 libros_tfidf %>% 
   arrange(desc(tf_idf)) %>% 
   group_by(libro) %>% 
@@ -259,5 +263,8 @@ libros_tfidf %>%
   labs(y=NULL) +
   scale_x_continuous(labels = scales::comma)
 
+# En este gráfico se aprecia claramente que "el elemento" se basa mucho en temas
+# orientados a la educación. En cambio "padre rico padre pobre" apunta a temas
+# financieros y como mover el dinero.
 
 
