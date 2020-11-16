@@ -1,26 +1,23 @@
 # Librerias requeridas ----------------------------------------------------
 
 if(!require(epubr)) install.packages("epubr")
-if(!require(epubr)) install.packages("dplyr")
-if(!require(epubr)) install.packages("stringr")
-if(!require(epubr)) install.packages("tidyverse")
-if(!require(epubr)) install.packages("tidytext")
-if(!require(epubr)) install.packages("readr")
-if(!require(epubr)) install.packages("ggplot2")
-if(!require(epubr)) install.packages("patchwork")
+if(!require(dplyr)) install.packages("dplyr")
+if(!require(stringr)) install.packages("stringr")
+if(!require(tidyverse)) install.packages("tidyverse")
+if(!require(tidytext)) install.packages("tidytext")
+if(!require(readr)) install.packages("readr")
+if(!require(ggplot2)) install.packages("ggplot2")
+if(!require(patchwork)) install.packages("patchwork")
 
 
 library(epubr)
 library(stringr)
-library(tidytext)
 library(tidyverse)
 library(dplyr)
 library(readr)
 library(tidytext)
-library(pdftools)
 library(ggplot2)
-library(patchwork)
-library(topicmodels)
+
 
 
 
@@ -38,18 +35,16 @@ limpiatexto <- function(texto) {
     str_remove_all("c\\(") %>% 
     str_remove_all("\\)") %>% 
     str_replace_all( "\\n", " ") %>% 
-    str_replace_all( "«", " ") %>% 
-    str_replace_all( "»", " ") %>% 
-    str_remove_all("'\'") %>% 
-    str_remove_all( "[:punct:]+[:digit:]+[:punct:]") %>%
-    str_remove_all( "[:digit:]+[:punct:]") %>% 
-    str_remove_all( "[:digit:][:space:]{0,}") %>% 
-    str_remove_all( "vol  pp <<")   %>% 
-    str_remove_all( "<<") %>% 
-    str_remove_all( "<<\n") %>% 
-    # str_replace_all("[:punct:]", " ") %>%
-    str_replace_all("\\\\", " ") %>% 
-    str_replace_all( "[:space:]{2,}", " ")
+    str_replace_all( "\\«", " ") %>% 
+    str_replace_all( "\\»", " ") %>% 
+    str_remove_all("\\\\") %>% 
+    str_remove_all("\\[+[:digit:]+\\]") %>%
+    str_remove_all("[:digit:]+[:punct:]") %>% 
+    str_remove_all("[:digit:][:space:]{0,}") %>%
+    str_remove_all("<<") %>% 
+    str_remove_all("<<\n") %>% 
+    str_remove_all('"') %>%
+    str_replace_all("[:space:]{2,}", " ")
  
   resultadotxt
 }
