@@ -1,3 +1,8 @@
+# Prueba análisis de texto, seccion reforzamiento.
+
+# Integrantes: Ramón Yañez, Patricio Zapata.
+
+
 # Librerias requeridas ----------------------------------------------------
 
 if(!require(epubr)) install.packages("epubr")
@@ -157,25 +162,25 @@ padre_rico_texto <- paste(padre_rico$data[[1]][3:11,2], collapse = " ")
 
 # Limpiando los textos --------------------------------------
 
-
 el_hombre_texto <- limpiatexto(el_hombre_texto)
-el_hombre_texto
 
 el_elemento_texto <- limpiatexto(el_elemento_texto)
-el_elemento_texto
 
 padre_rico_texto <- limpiatexto(padre_rico_texto)
-padre_rico_texto
 
 
-# Funcion para tomar la frecuencia de palabras y realizar antijoin --------
+
+# Preparamos para llamar a funcion de frecuencia de palabras y realizar antijoin --------
 
 # 1:
 # Se descargan algunas stopwords desde la web.
 stopwords_web <- read_csv("https://raw.githubusercontent.com/7PartidasDigital/AnaText/master/datos/diccionarios/vacias.txt")
 
 # stopword personalizado 
-mis_stopwords <- tibble(palabra = c("va", "tenemos","value","hace", "hacer", "ser", "puede", "tiene", "dice")) # colocar mas en caso de...
+# mis_stopwords <- tibble(palabra = c("va", "tenemos","value","hace", "hacer", "ser", "puede", "tiene", "dice")) # colocar mas en caso de...
+mis_stopwords <- tibble(palabra = c("va", "tenemos","value","hace", "hacer", "ser",
+                                    "puede", "tiene", "dice","paul","gillian","igualmente",
+                                    "liverpool","mediante","londres","sesenta")) 
 
 # unimos
 all_stopwords <- bind_rows(stopwords_web, mis_stopwords)
@@ -193,28 +198,24 @@ grafica_frecuencias(freq_el_elemento_texto, "El elemento")
 freq_padre_rico_texto <- freq_palabras_libros(padre_rico_texto,all_stopwords)
 grafica_frecuencias(freq_padre_rico_texto,"Padre rico padre pobre")
 
-# TODO: Buscar como separar los output para que salgan los 3 graficos
-
-
 
 ################ BIGRAMAS ################
 
-el_hombre_bigrama <-  bigramas_libros(el_hombre_texto)
+bigramas_libros(el_hombre_texto)
 
-el_elemento_bigrama <-  bigramas_libros(el_elemento_texto)
+bigramas_libros(el_elemento_texto)
 
-padre_rico_bigrama <-  bigramas_libros(padre_rico_texto)
+bigramas_libros(padre_rico_texto)
 
 
 
 ## ¿Los resultados son los que esperaban? 
-# Si. AL mirar los bigramas y relacionarlos con el autor de cada libro, corresponden con las vivencias y entorno de cada autor.
-
+# Si. AL mirar los bigramas y relacionarlos con el autor de cada libro, corresponden con las vivencias y entorno de cada autor. 
 
 ## ¿Hay algo que les haya llamado la atención?
 # Los libros Padre rico y el elemento son parecidos entre si, en la perspectiva de crecimiento personal y económica,
 # mientras que "el hombre en busca de sentido" toca temas vividos en un campo de concentración y el sentido a la vida que encontró en ello.
-
+# Si bien los 3 títulos caen en la categoría autoayuda, los bigramas demuestran que lo hacen de maneras distintas
 
 
 
@@ -263,3 +264,80 @@ libros_tfidf %>%
 # financieros y como mover el dinero.
 
 
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+# Complemento de la prueba.
+
+
+# Solo como método comparativo y en vista de las conclusiones, agregaremos 
+# un libro más a comparar (tus zonas erróneas) el cual, tendería a ser mas parecido al elemento.
+
+# Entonces, hacemos los mismos procedimiento anteriores:
+
+
+
+# LEER EPUB
+zonas_erroneas <-  epub("Tuszonaserroneas.epub")
+View(zonas_erroneas$data[[1]])
+
+# tomaremos de la sección de capitulos 1 a la 12, esto es las filas 2 a la 13
+zonas_erroneas_texto <- paste(zonas_erroneas$data[[1]][2:13,2], collapse = " ")
+
+# limpiamos el texto --
+zonas_erroneas_texto <- limpiatexto(zonas_erroneas_texto)
+
+#  sacamos stopwords y graficamos
+
+freq_zonas_erroneas_texto <- freq_palabras_libros(zonas_erroneas_texto,all_stopwords)
+grafica_frecuencias(freq_zonas_erroneas_texto, "Tus zonas erroneas")
+
+bigramas_libros(zonas_erroneas_texto)
+
+
+freq_zonas_erroneas_texto <- freq_zonas_erroneas_texto %>% 
+  mutate(libro = 'Tus_zonas_erroneas', .before = palabra)
+
+# comparamos el elemento con tus zonas erróneas:
+
+
+libros2 <- bind_rows(freq_el_elemento_texto, freq_zonas_erroneas_texto)
+
+# Generamos el análisis TF-IDF
+libros2_tfidf <- bind_tf_idf(libros2,
+                            term = palabra,
+                            document = libro,
+                            n= n)
+
+
+
+libros2_tfidf %>% 
+  arrange(desc(tf_idf)) %>% 
+  group_by(libro) %>% 
+  slice_head(n=15) %>% 
+  ggplot(aes(y=reorder(palabra,tf_idf),x= tf_idf, fill= libro)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~libro, scales = "free") +
+  labs(y=NULL) +
+  scale_x_continuous(labels = scales::comma)
+
+# Con esta nueva comparación, podemos notar que los libros se diferencian en que el elemento 
+# muestra quehaceres o verbos de acción (como tocar, baile, escritura, aptitudes), en los 
+# cuales se busca lo que a uno le apasiona en la vida, 
+# en cambio las zonas erróneas se basa en sentimientos negativos (como eliminarlos) 
+# como la ira, culpabilidad, rabia).
